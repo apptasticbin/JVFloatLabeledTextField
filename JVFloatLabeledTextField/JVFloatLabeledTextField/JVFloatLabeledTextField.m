@@ -31,6 +31,12 @@
 static CGFloat const kFloatingLabelShowAnimationDuration = 0.3f;
 static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 
+@interface JVFloatLabeledTextField ()
+
+@property (nonatomic, strong) NSString *placeholderText;
+
+@end
+
 @implementation JVFloatLabeledTextField
 {
     BOOL _isFloatingLabelFontDefault;
@@ -124,7 +130,7 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
     }
     _floatingLabel.font = _floatingLabelFont ? _floatingLabelFont : [self defaultFloatingLabelFont];
     _isFloatingLabelFontDefault = floatingLabelFont == nil;
-    [self setFloatingLabelText:self.placeholder];
+    [self setFloatingLabelText:self.floatingLabel.text];
     [self invalidateIntrinsicContentSize];
 }
 
@@ -237,6 +243,7 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 
 - (void)setPlaceholder:(NSString *)placeholder
 {
+    [self cachePlaceholderText:placeholder];
     [self setCorrectPlaceholder:placeholder];
     [self setFloatingLabelText:placeholder];
 }
@@ -244,12 +251,14 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 - (void)setAttributedPlaceholder:(NSAttributedString *)attributedPlaceholder
 {
     [super setAttributedPlaceholder:attributedPlaceholder];
+    [self cachePlaceholderText:attributedPlaceholder.string];
     [self setFloatingLabelText:attributedPlaceholder.string];
     [self updateDefaultFloatingLabelFont];
 }
 
 - (void)setPlaceholder:(NSString *)placeholder floatingTitle:(NSString *)floatingTitle
 {
+    [self cachePlaceholderText:placeholder];
     [self setCorrectPlaceholder:placeholder];
     [self setFloatingLabelText:floatingTitle];
 }
@@ -257,6 +266,7 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 - (void)setAttributedPlaceholder:(NSAttributedString *)attributedPlaceholder floatingTitle:(NSString *)floatingTitle
 {
     [super setAttributedPlaceholder:attributedPlaceholder];
+    [self cachePlaceholderText:attributedPlaceholder.string];
     [self setFloatingLabelText:floatingTitle];
 }
 
@@ -294,8 +304,8 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 {
     CGRect rect = [super clearButtonRectForBounds:bounds];
     if (0 != self.adjustsClearButtonRect
-    	&& _floatingLabel.text.length // for when there is no floating title label text
-	) {
+        && _floatingLabel.text.length // for when there is no floating title label text
+        ) {
         if ([self.text length] || self.keepBaseline) {
             CGFloat topInset = ceilf(_floatingLabel.font.lineHeight + _placeholderYPadding);
             topInset = MIN(topInset, [self maxTopInset]);
@@ -359,14 +369,32 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
                                       floatingLabelSize.height);
     
     BOOL firstResponder = self.isFirstResponder;
-    _floatingLabel.textColor = (firstResponder && self.text && self.text.length > 0 ?
+    _floatingLabel.textColor = (firstResponder && self.text ?
                                 self.labelActiveColor : self.floatingLabelTextColor);
-    if ((!self.text || 0 == [self.text length]) && !self.alwaysShowFloatingLabel) {
-        [self hideFloatingLabel:firstResponder];
+    if ((!self.text || !firstResponder) && !self.alwaysShowFloatingLabel) {
+        [self hideFloatingLabel:YES];
+        [self hidePlaceholderText];
     }
     else {
-        [self showFloatingLabel:firstResponder];
+        [self showFloatingLabel:YES];
+        [self showPlaceholderText];
     }
+}
+
+#pragma mark - Tori Extension
+
+- (void)showPlaceholderText {
+    [self setPlaceholderColor:[UIColor grayColor]];
+    [self setCorrectPlaceholder:self.placeholderText];
+}
+
+- (void)hidePlaceholderText {
+    [self setPlaceholderColor:self.tintColor];
+    [self setCorrectPlaceholder:self.floatingLabel.text];
+}
+
+- (void)cachePlaceholderText:(NSString *)placeholder {
+    self.placeholderText = placeholder;
 }
 
 @end
