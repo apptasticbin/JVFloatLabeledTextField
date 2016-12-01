@@ -130,7 +130,6 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
     }
     _floatingLabel.font = _floatingLabelFont ? _floatingLabelFont : [self defaultFloatingLabelFont];
     _isFloatingLabelFontDefault = floatingLabelFont == nil;
-    [self setFloatingLabelText:self.floatingLabel.text];
     [self invalidateIntrinsicContentSize];
 }
 
@@ -384,13 +383,21 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 #pragma mark - Tori Extension
 
 - (void)showPlaceholderText {
-    [self setPlaceholderColor:[UIColor grayColor]];
-    [self setCorrectPlaceholder:self.placeholderText];
+    [self updatePlaceholderWithText:self.placeholderText color:self.placeholderColor];
 }
 
 - (void)hidePlaceholderText {
-    [self setPlaceholderColor:self.tintColor];
-    [self setCorrectPlaceholder:self.floatingLabel.text];
+    [self updatePlaceholderWithText:self.floatingLabel.text color:self.floatingLabelTextColor];
+}
+
+- (void)updatePlaceholderWithText:(NSString *)placeholder color:(UIColor *)color {
+    if (self.placeholderColor && placeholder) {
+        NSAttributedString *attributedPlaceholder = [[NSAttributedString alloc] initWithString:placeholder
+                                                                                    attributes:@{NSForegroundColorAttributeName: color}];
+        [super setAttributedPlaceholder:attributedPlaceholder];
+    } else {
+        [super setPlaceholder:placeholder];
+    }
 }
 
 - (void)cachePlaceholderText:(NSString *)placeholder {

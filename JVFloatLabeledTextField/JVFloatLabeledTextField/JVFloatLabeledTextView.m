@@ -187,13 +187,15 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
     [self setLabelOriginForTextAlignment];
     
     BOOL firstResponder = self.isFirstResponder;
-    _floatingLabel.textColor = (firstResponder && self.text && self.text.length > 0 ?
+    _floatingLabel.textColor = (firstResponder && self.text ?
                                 self.labelActiveColor : self.floatingLabelTextColor);
-    if ((!self.text || 0 == [self.text length]) && !self.alwaysShowFloatingLabel) {
+    if ((!self.text || !firstResponder) && !self.alwaysShowFloatingLabel) {
         [self hideFloatingLabel:firstResponder];
+        [self hidePlaceholderText];
     }
     else {
         [self showFloatingLabel:firstResponder];
+        [self showPlaceholderText];
     }
 }
 
@@ -319,7 +321,12 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 {
     _floatingLabelFont = floatingLabelFont;
     _floatingLabel.font = _floatingLabelFont ? _floatingLabelFont : [self defaultFloatingLabelFont];
-    self.placeholder = self.placeholder; // Force the label to lay itself out with the new font.
+}
+
+- (void)setFloatingLabelText:(NSString *)text
+{
+    _floatingLabel.text = text;
+    [self setNeedsLayout];
 }
 
 #pragma mark - Apple UITextView defaults
@@ -363,6 +370,21 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
     if (0 != self.floatingLabelShouldLockToTop) {
         _floatingLabel.backgroundColor = self.backgroundColor;
     }
+}
+
+#pragma mark - Tori Extension
+
+- (void)showPlaceholderText {
+    [self updatePlaceholderWithText:self.placeholder color:self.placeholderTextColor];
+}
+
+- (void)hidePlaceholderText {
+    [self updatePlaceholderWithText:self.floatingLabel.text color:self.floatingLabelTextColor];
+}
+
+- (void)updatePlaceholderWithText:(NSString *)placeholder color:(UIColor *)color {
+    self.placeholderLabel.textColor = color;
+    self.placeholderLabel.text = placeholder;
 }
 
 @end
