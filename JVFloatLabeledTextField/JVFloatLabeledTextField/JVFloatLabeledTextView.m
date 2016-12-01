@@ -385,6 +385,7 @@ static CGFloat const kFloatingLabelHideAnimationDuration = 0.3f;
 - (void)updatePlaceholderWithText:(NSString *)placeholder color:(UIColor *)color {
     self.placeholderLabel.textColor = color;
     self.placeholderLabel.text = placeholder;
+    [self.placeholderLabel sizeToFit];
 }
 
 @end
